@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
-import User from './user.js'
 import type { HasMany } from '@adonisjs/lucid/types/relations'
+import User from './user.js'
 
 export default class Organization extends BaseModel {
   @column({ isPrimary: true })
@@ -11,10 +11,19 @@ export default class Organization extends BaseModel {
   public name: string
 
   @column()
-  public address?: string
+  public email: string // Agora obrigatório
 
   @column()
   public phone?: string
+
+  @column()
+  public workingHours: Record<string, { start: string; end: string } | null> | null // JSON para horários por dia
+
+  @column.dateTime({ autoCreate: true })
+  public createdAt: DateTime
+
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  public updatedAt: DateTime
 
   @hasMany(() => User)
   public users: HasMany<typeof User>

@@ -24,9 +24,11 @@ export default class Appointment extends BaseModel {
   @column()
   public organizationId: number
 
-  // Alterando para DateTime
   @column.dateTime()
-  public appointmentTime: DateTime
+  public startTime: DateTime
+
+  @column.dateTime()
+  public endTime: DateTime
 
   @column()
   public status: 'pending' | 'confirmed' | 'canceled'
