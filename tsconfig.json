@@ -3,6 +3,13 @@
   "compilerOptions": {
 		"strictPropertyInitialization": false,
     "rootDir": "./",
+		
+    "types": ["@adonisjs/core"],
+		"paths": {
+      "@ioc:Adonis/Core/*": ["node_modules/@adonisjs/core/build/adonis-typings/core/*"],
+			"*": ["node_modules/*", "app/*", "start/*"]
+    },
+		"baseUrl": ".",
     "outDir": "./build"
   }
 }
