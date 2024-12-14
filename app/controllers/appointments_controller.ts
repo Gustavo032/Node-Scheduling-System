@@ -85,4 +85,21 @@ export default class AppointmentsController {
       return response.internalServerError({ message: 'Erro ao buscar agendamentos pendentes.' })
     }
   }
+
+  public async getConfirmedAppointments({ response }: HttpContextContract) {
+    try {
+      const pendingAppointments = await Appointment.query().where('status', 'confirmed')
+      return response.ok(pendingAppointments)
+    } catch (error) {
+      return response.internalServerError({ message: 'Erro ao buscar agendamentos pendentes.' })
+    }
+  }
+  public async getCanceledAppointments({ response }: HttpContextContract) {
+    try {
+      const pendingAppointments = await Appointment.query().where('status', 'canceled')
+      return response.ok(pendingAppointments)
+    } catch (error) {
+      return response.internalServerError({ message: 'Erro ao buscar agendamentos pendentes.' })
+    }
+  }
 }
