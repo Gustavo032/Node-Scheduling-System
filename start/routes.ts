@@ -64,6 +64,10 @@ router
     router
       .resource('special-schedules', SpecialSchedulesController)
       .use('*', [middleware.auth(), middleware.roleValidation(['admin', 'manager'])])
+
+    router
+      .get('/appointments/pending', 'AppointmentsController.getPendingAppointments')
+      .use([middleware.auth(), middleware.roleValidation(['admin', 'manager'])])
   })
   .prefix('api')
 
