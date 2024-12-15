@@ -36,7 +36,7 @@ export default class Appointment extends BaseModel {
   @column()
   public message?: string
 
-  @belongsTo(() => User)
+  @belongsTo(() => User, { foreignKey: 'clientId' })
   public client: BelongsTo<typeof User>
 
   @belongsTo(() => Service)

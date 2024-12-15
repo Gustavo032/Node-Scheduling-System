@@ -69,6 +69,7 @@ router
     router
       .get('/appointments/canceled', appointmentsController.getCanceledAppointments)
       .use([middleware.auth()])
+
     router.get('/appointments', appointmentsController.index).use([middleware.auth()])
     router.post('/appointments', appointmentsController.store).use([middleware.auth()])
     router.put('/appointments', appointmentsController.update).use([middleware.auth()])
