@@ -7,7 +7,8 @@ import UsersController from '#controllers/users_controller'
 import AuthController from '#controllers/auth_controller'
 import OrganizationsController from '#controllers/organizations_controller'
 import AppointmentsController from '#controllers/appointments_controller'
-const ServicesController = () => import('#controllers/services_controller')
+import ServicesController from '#controllers/services_controller'
+const ServicesControllerConst = () => import('#controllers/services_controller')
 const SpecialSchedulesController = () => import('#controllers/special_schedules_controller')
 
 import { Router } from '@adonisjs/http-server'
@@ -16,6 +17,7 @@ import router from '@adonisjs/core/services/router'
 // const router = new Router()
 // import UsersController from '#controllers/users_controller'
 const usersController = new UsersController()
+const servicesController = new ServicesController()
 const appointmentsController = new AppointmentsController()
 const authController = new AuthController()
 const organizationsController = new OrganizationsController()
@@ -51,9 +53,22 @@ router
         middleware.roleValidation(['admin', 'manager']), //+
       ]) //+
     // Serviços
+    router.resource('services', ServicesControllerConst).use('*', [
+      middleware.auth(), //
+      middleware.roleValidation(['admin', 'manager', '*']),
+    ])
+
     router
-      .resource('services', ServicesController)
-      .use('*', [middleware.auth(), middleware.roleValidation(['admin', 'manager'])])
+      .post('/services/:id/availability/:date', servicesController.getAvailability)
+      .use([middleware.auth()])
+
+    // router
+    //   .get('/services/:id/availability', async (ctx) => {
+    //     const controller = new ServicesController()
+    //     return controller.getAvailability(ctx)
+    //   })
+    //   .use([middleware.auth()])
+
     // Horários Especiais
     router
       .resource('special-schedules', SpecialSchedulesController)

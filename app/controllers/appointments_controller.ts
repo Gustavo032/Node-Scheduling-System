@@ -26,7 +26,7 @@ export default class AppointmentsController {
     const user = auth.user!
 
     // Apenas clientes podem criar agendamentos
-    if (user.role !== 'client') {
+    if (user.role !== 'client' && user.role !== 'admin') {
       return response.unauthorized('Somente clientes podem criar agendamentos.')
     }
 
