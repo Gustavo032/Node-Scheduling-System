@@ -4,6 +4,7 @@ import Organization from '#models/organization'
 import Service from '#models/service'
 import SpecialSchedule from '#models/special_schedule'
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import { DateTime } from 'luxon' // Certifique-se de ter o Luxon instalado
 
 export default class ServicesController {
   // Criar serviço
@@ -63,21 +64,39 @@ export default class ServicesController {
 
     // Criar array apenas com os startTimes dos agendamentos, formatando para HH:mm
     const appointmentStartTimes = appointments.map((appointment: any) => {
-      return appointment.startTime.toFormat('HH:mm') // Formatar para HH:mm
+      return DateTime.fromISO(appointment.startTime).setZone('America/Sao_Paulo').toFormat('HH:mm') // Ajusta para o fuso horário de SP
     })
 
     console.log('Appointment start times:', appointmentStartTimes) // Log dos horários de início
 
-    // Determinar o dia da semana
-    const dayOfWeek = date.getDay() // 0 = Domingo, 1 = Segunda-feira, ..., 6 = Sábado
+    // Ajustar o dia da semana corretamente considerando a data local
+    let dayOfWeek = date.getDay() // 0 = Domingo, 1 = Segunda-feira, ..., 6 = Sábado
+    console.log('Day of week before adjustment:', dayOfWeek)
 
-    // Obter os horários de trabalho da organização para o dia da semana
+    // Ajustar o valor do dayOfWeek conforme a lógica do front-end
+    if (dayOfWeek === 0) {
+      dayOfWeek = 6 // Domingo vira sábado
+    } else {
+      dayOfWeek -= 1 // Outros dias seguem a lógica que você mencionou
+    }
+
+    console.log('Adjusted day of week:', dayOfWeek)
+
+    // Obter os horários de trabalho da organização para o dia da semana ajustado
     const workingHours =
       organization.workingHours?.[Object.keys(organization.workingHours ?? {})[dayOfWeek]]
 
-    // Se não houver horários de trabalho específicos para esse dia, considerar horário padrão
-    const workingStart = workingHours ? workingHours.start : '00:00'
-    const workingEnd = workingHours ? workingHours.end : '23:59'
+    // Se não houver horários de trabalho, retornar um array vazio
+    if (!workingHours) {
+      return response.ok({
+        availableTimes: [],
+        formattedAppointmentTimes: appointmentStartTimes,
+      })
+    }
+
+    // Se houver horários de trabalho, continuar com a lógica normal
+    const workingStart = workingHours.start
+    const workingEnd = workingHours.end
 
     // Conversão para minutos - A função 'timeToMinutes' agora é um método da classe
     const startTime = ServicesController.timeToMinutes(workingStart)
@@ -114,7 +133,7 @@ export default class ServicesController {
       }
     }
 
-    // Retorna os horários disponíveis e agendados
+    // Retorna os horários disponíveis e agendados ajustados para o fuso horário de SP
     return response.ok({
       availableTimes,
       formattedAppointmentTimes: appointmentStartTimes,
@@ -127,6 +146,7 @@ export default class ServicesController {
     const [hours, minutes] = time.split(':').map(Number)
     return hours * 60 + minutes
   }
+
   private static roundToNearestInterval(time: string, interval: number): string {
     const [hours, minutes] = time.split(':').map(Number)
     const totalMinutes = hours * 60 + minutes

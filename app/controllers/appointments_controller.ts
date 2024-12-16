@@ -1,6 +1,7 @@
 // app/Controllers/Http/AppointmentsController.ts
 import Appointment from '#models/appointment'
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import { DateTime } from 'luxon'
 
 export default class AppointmentsController {
   // Listar agendamentos
@@ -30,9 +31,23 @@ export default class AppointmentsController {
       return response.unauthorized('Somente clientes podem criar agendamentos.')
     }
 
+    // Recebe os dados de startTime, endTime e serviceId
     const data = request.only(['startTime', 'endTime', 'serviceId'])
+
+    // Verifica se as datas de início e fim estão presentes
+    if (!data.startTime || !data.endTime) {
+      return response.badRequest('Start time e end time são obrigatórios.')
+    }
+
+    // Converte as datas de UTC para o fuso horário da organização ou do usuário
+    const startTime = DateTime.fromISO(data.startTime, { zone: 'UTC' }).setZone('America/Sao_Paulo')
+    const endTime = DateTime.fromISO(data.endTime, { zone: 'UTC' }).setZone('America/Sao_Paulo')
+
+    // Cria o agendamento com os dados fornecidos, usando as datas ajustadas
     const appointment = await Appointment.create({
       ...data,
+      startTime: startTime.toISO(),
+      endTime: endTime.toISO(),
       clientId: user.id,
       organizationId: user.organizationId,
     })

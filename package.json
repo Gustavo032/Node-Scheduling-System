@@ -6,7 +6,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "start": "node bin/server.js",
-		"start:dev": "node ace serve --watch",
+    "start:dev": "node ace serve --watch",
     "build": "node ace build",
     "dev": "node ace serve --hmr",
     "test": "node ace test",
@@ -60,6 +60,7 @@
     "@adonisjs/lucid": "^21.3.0",
     "@adonisjs/session": "^7.5.0",
     "@vinejs/vine": "^2.1.0",
+    "date-fns-tz": "^3.2.0",
     "jsonwebtoken": "^9.0.2",
     "luxon": "^3.5.0",
     "pg": "^8.13.1",

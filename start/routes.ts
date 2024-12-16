@@ -59,7 +59,7 @@ router
     ])
 
     router
-      .post('/services/:id/availability/:date', servicesController.getAvailability)
+      .get('/services/:id/availability/:date', servicesController.getAvailability)
       .use([middleware.auth()])
 
     // router
