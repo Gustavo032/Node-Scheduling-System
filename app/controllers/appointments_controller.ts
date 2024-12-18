@@ -24,26 +24,25 @@ export default class AppointmentsController {
 
   // Criar um novo agendamento
   public async store({ request, auth, response }: HttpContextContract) {
-    const user = auth.user!
+    const user = auth.user
 
-    // Apenas clientes podem criar agendamentos
-    if (user.role !== 'client' && user.role !== 'admin') {
-      return response.unauthorized('Somente clientes podem criar agendamentos.')
+    // Verificar se o usuário está autenticado
+    if (!user) {
+      return response.unauthorized('Usuário não autenticado.')
     }
 
-    // Recebe os dados de startTime, endTime e serviceId
+    console.log('Usuário autenticado:', user)
+
+    // Continuação da lógica...
     const data = request.only(['startTime', 'endTime', 'serviceId'])
 
-    // Verifica se as datas de início e fim estão presentes
     if (!data.startTime || !data.endTime) {
       return response.badRequest('Start time e end time são obrigatórios.')
     }
 
-    // Converte as datas de UTC para o fuso horário da organização ou do usuário
     const startTime = DateTime.fromISO(data.startTime, { zone: 'UTC' }).setZone('America/Sao_Paulo')
     const endTime = DateTime.fromISO(data.endTime, { zone: 'UTC' }).setZone('America/Sao_Paulo')
 
-    // Cria o agendamento com os dados fornecidos, usando as datas ajustadas
     const appointment = await Appointment.create({
       ...data,
       startTime: startTime.toISO(),
@@ -76,8 +75,8 @@ export default class AppointmentsController {
     const user = auth.user!
     const appointment = await Appointment.findOrFail(params.id)
 
-    // Apenas clientes ou admins podem cancelar
-    if (appointment.clientId !== user.id && user.role !== 'admin' && user.role !== 'manager') {
+    // Apenas clientes, admins ou gerentes podem cancelar
+    if (appointment.clientId !== user.id && !['admin', 'manager'].includes(user.role)) {
       return response.unauthorized('Você não tem permissão para cancelar este agendamento.')
     }
 
@@ -87,11 +86,12 @@ export default class AppointmentsController {
     }
 
     appointment.status = 'canceled'
-    appointment.message = message
+    appointment.message = message // Salva a mensagem de cancelamento
     await appointment.save()
 
-    return appointment
+    return response.ok({ message: 'Agendamento cancelado com sucesso.', appointment })
   }
+
   public async getPendingAppointments({ auth, response }: HttpContextContract) {
     try {
       const appointments = await Appointment.query()
@@ -111,20 +111,41 @@ export default class AppointmentsController {
     }
   }
 
-  public async getConfirmedAppointments({ response }: HttpContextContract) {
+  public async getConfirmedAppointments({ auth, response }: HttpContextContract) {
     try {
-      const pendingAppointments = await Appointment.query().where({ status: 'confirmed' })
-      return response.ok(pendingAppointments)
+      const appointments = await Appointment.query()
+        .preload('client', (clientQuery) => {
+          clientQuery.select('fullName')
+        })
+        .preload('service', (serviceQuery) => {
+          serviceQuery.select('name')
+        })
+        .where('status', 'confirmed')
+        .orderBy('startTime', 'asc')
+
+      return response.json(appointments)
     } catch (error) {
-      return response.internalServerError({ message: 'Erro ao buscar agendamentos pendentes.' })
+      console.error(error) // Imprime o erro detalhado no servidor
+      return response.status(500).send('Erro ao buscar agendamentos')
     }
   }
-  public async getCanceledAppointments({ response }: HttpContextContract) {
+
+  public async getCanceledAppointments({ auth, response }: HttpContextContract) {
     try {
-      const pendingAppointments = await Appointment.query().where('status', 'canceled')
-      return response.ok(pendingAppointments)
+      const appointments = await Appointment.query()
+        .preload('client', (clientQuery) => {
+          clientQuery.select('fullName')
+        })
+        .preload('service', (serviceQuery) => {
+          serviceQuery.select('name')
+        })
+        .where('status', 'canceled')
+        .orderBy('startTime', 'asc')
+
+      return response.json(appointments)
     } catch (error) {
-      return response.internalServerError({ message: 'Erro ao buscar agendamentos pendentes.' })
+      console.error(error) // Imprime o erro detalhado no servidor
+      return response.status(500).send('Erro ao buscar agendamentos')
     }
   }
 }

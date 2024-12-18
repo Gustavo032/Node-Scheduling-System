@@ -87,8 +87,9 @@ router
 
     router.get('/appointments', appointmentsController.index).use([middleware.auth()])
     router.post('/appointments', appointmentsController.store).use([middleware.auth()])
-    router.put('/appointments', appointmentsController.update).use([middleware.auth()])
-    router.delete('/appointments', appointmentsController.cancel).use([middleware.auth()])
+    router.put('/appointments/:id', appointmentsController.update).use([middleware.auth()])
+    // router.delete('/appointments', appointmentsController.cancel).use([middleware.auth()])
+    router.delete('/appointments/:id', appointmentsController.cancel).use([middleware.auth()])
   })
   .prefix('api')
 export default router
